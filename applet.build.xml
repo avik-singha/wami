@@ -1,0 +1,83 @@
+<!-- 
+To rebuild the applet, right-click on this file and
+and Run As Ant Build...
+
+Then be sure to refresh the "lib" folder to get the
+changes from the file system.
+
+It's odd for an applet to go into the libs exported into
+a dynamic web project, but it gets proxied to the client.
+
+Note that if you want a signed applet, you will need to
+add properties pointing to the keystore, etc, and change
+the target to "sign"
+-->
+<project name="applet" default="jar" basedir=".">
+
+	<property name="jar.home" value="${basedir}/lib" />
+	<property name="src.home" value="${basedir}/src-applet" />
+	<property name="build.home" value="${basedir}/build-applet" />
+	<property name="classes.home" value="${build.home}/classes" />
+	<property name="jar.name" value="wami_audio_applet.jar" />
+	<property name="jar.path" value="${jar.home}/jar.name" />
+
+	<!-- Compilation options -->
+	<property name="compile.debug" value="true" />
+	<property name="compile.deprecation" value="false" />
+	<property name="compile.optimize" value="true" />
+
+	<!-- Compilation classpath -->
+	<path id="compile.classpath">
+		<pathelement location="${basedir}/lib" />
+	</path>
+
+	<!-- All target -->
+	<target name="all" depends="clean, prepare, jar" description="Clean build" />
+
+	<!-- Clean target -->
+	<target name="clean" description="Delete old build directories">
+		<delete dir="${jar.path}" />
+		<delete dir="${classes.home}" />
+	</target>
+
+	<!-- Preparation -->
+	<target name="prepare">
+		<!-- Create build directories as needed -->
+		<mkdir dir="${build.home}" />
+		<mkdir dir="${jar.home}" />
+		<mkdir dir="${classes.home}" />
+	</target>
+
+
+	<!-- Compile target -->
+	<target name="compile" depends="prepare" description="Compile Java sources">
+		<!-- Compile Java classes as necessary -->
+		<mkdir dir="${classes.home}" />
+
+		<javac srcdir="${src.home}" destdir="${classes.home}" debug="${compile.debug}" deprecation="${compile.deprecation}" optimize="${compile.optimize}" target="1.5">
+			<classpath refid="compile.classpath" />
+		</javac>
+
+		<!-- copy over some .wav file resources -->
+		<copy todir="${classes.home}">
+			<fileset dir="${src.home}" includes="**/*.wav" />
+		</copy>
+
+	</target>
+
+	<!-- Jar target -->
+	<target name="jar" depends="compile" description="Make the jar">
+		<jar jarfile="${jar.home}/${jar.name}" basedir="${classes.home}">
+		</jar>
+	</target>
+
+	<!-- sign target -->
+	<target name="sign" depends="jar" description="Sign the jar">
+		<echo message="${signjar.alias}" />
+		<echo message="${signjar.storepass}" />
+		<echo message="${signjar.keypass}" />
+		<echo message="${signjar.keystore}" />
+		<signjar jar="${jar.home}/${jar.name}" alias="${signjar.alias}" storepass="${signjar.storepass}" keypass="${signjar.keypass}" keystore="${signjar.keystore}" />
+	</target>
+
+</project>
