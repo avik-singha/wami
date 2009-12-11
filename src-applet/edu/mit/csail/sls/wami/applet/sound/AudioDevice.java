@@ -202,9 +202,11 @@ public class AudioDevice implements Runnable {
 	    }
 	}
 
+	@Override
 	void finish() {
 	}
 
+	@Override
 	void abort() {
 	}
     }
@@ -241,10 +243,12 @@ public class AudioDevice implements Runnable {
 	    }
 	}
 
+	@Override
 	int getFramePosition() {
 	    return audioPlayer.getFramePosition();
 	}
 
+	@Override
 	synchronized void abort() {
 	    if (active) {
 		audioPlayer.stopPlaying();
@@ -252,6 +256,7 @@ public class AudioDevice implements Runnable {
 	    }
 	}
 
+	@Override
 	void finish() {
 	    waitComplete();
 	}
@@ -305,10 +310,12 @@ public class AudioDevice implements Runnable {
 		return ais;
 	}
 
+	@Override
 	void abort() {
 	    finish();
 	}
 
+	@Override
 	synchronized void finish() {
 	    System.out.println("FINISH RECORDING: ");
 	    if (active) {

@@ -104,23 +104,29 @@ class UpSample2InputStream extends InputStream {
 	return position > 0;
     }
 
-    public int available() throws IOException {
+    @Override
+	public int available() throws IOException {
 	return (in.available()+
 		sb.remaining()*2+
 		padding)*2;
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
 	in.close();
     }
 
-    public void mark(int readLimit){}
-    public boolean markSupported(){
+    @Override
+	public void mark(int readLimit){}
+    @Override
+	public boolean markSupported(){
 	return false;
     }
-    public void reset(){}
+    @Override
+	public void reset(){}
 
-    public long skip(long n2) throws IOException {
+    @Override
+	public long skip(long n2) throws IOException {
 	long n = n2/2;
 	long result = 0;
 	if (padding > 0 || n < fl2+1){
@@ -150,11 +156,13 @@ class UpSample2InputStream extends InputStream {
 	return result*2;
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
 	throw new IOException("Attempt to read less than one frame");
     }
 
-    public int read(byte[] b) throws IOException {
+    @Override
+	public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
@@ -169,7 +177,8 @@ class UpSample2InputStream extends InputStream {
 	}
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
+    @Override
+	public int read(byte[] b, int off, int len) throws IOException {
 	while(presig-- > 0){
 	    readSample();
 	}
@@ -291,23 +300,29 @@ class DownSample2InputStream extends InputStream {
 	return position > 0;
     }
 
-    public int available() throws IOException {
+    @Override
+	public int available() throws IOException {
 	return (in.available()+
 		sb.remaining()*2+
 		padding)/2;
     }
 
-    public void close() throws IOException {
+    @Override
+	public void close() throws IOException {
 	in.close();
     }
 
-    public void mark(int readLimit){}
-    public boolean markSupported(){
+    @Override
+	public void mark(int readLimit){}
+    @Override
+	public boolean markSupported(){
 	return false;
     }
-    public void reset(){}
+    @Override
+	public void reset(){}
 
-    public long skip(long n2) throws IOException {
+    @Override
+	public long skip(long n2) throws IOException {
 	long n = n2*2;
 	long result = 0;
 	if (padding > 0 || n < fl2+1){
@@ -337,11 +352,13 @@ class DownSample2InputStream extends InputStream {
 	return result/2;
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
 	throw new IOException("Attempt to read less than one frame");
     }
 
-    public int read(byte[] b) throws IOException {
+    @Override
+	public int read(byte[] b) throws IOException {
 	return read(b, 0, b.length);
     }
 
@@ -356,7 +373,8 @@ class DownSample2InputStream extends InputStream {
 	}
     }
 
-    public int read(byte[] b, int off, int len) throws IOException {
+    @Override
+	public int read(byte[] b, int off, int len) throws IOException {
 	while(presig-- > 0){
 	    readSample();
 	}

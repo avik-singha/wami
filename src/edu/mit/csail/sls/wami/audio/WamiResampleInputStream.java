@@ -145,16 +145,19 @@ public class WamiResampleInputStream extends InputStream {
 				: ByteOrder.LITTLE_ENDIAN;
 	}
 
+	@Override
 	public int available() throws IOException {
 		convert(false);
 		return targetByteFifo.size();
 	}
 
+	@Override
 	public int read() throws IOException {
 		throw new Error("not supported");
 	}
 
 	// This must read at least one byte, blocking until something is available
+	@Override
 	public int read(byte[] b, int offset, int length) throws IOException {
 		if (targetByteFifo.size() == 0) {
 			convert(true);
@@ -169,6 +172,7 @@ public class WamiResampleInputStream extends InputStream {
 		return m;
 	}
 
+	@Override
 	public void close() {
 		h = null;
 		z = null;

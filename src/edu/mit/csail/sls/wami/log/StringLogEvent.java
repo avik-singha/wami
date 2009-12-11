@@ -74,6 +74,7 @@ public class StringLogEvent implements ILoggable {
 		return XmlUtils.toXMLDocument(event);
 	}
 	
+	@Override
 	public String toString() {
 		return toLogEvent();
 	}

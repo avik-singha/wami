@@ -50,10 +50,12 @@ public class WamiCrossSitePostFilter implements Filter {
 			in = new CustomServerInputStream(buffer);
 		}
 
+		@Override
 		public ServletInputStream getInputStream() throws IOException {
 			return in;
 		}
 
+		@Override
 		public BufferedReader getReader() throws IOException {
 			final String enc = getCharacterEncoding();
 			final InputStream istream = getInputStream();
@@ -71,10 +73,12 @@ public class WamiCrossSitePostFilter implements Filter {
 			in = new ByteArrayInputStream(baos.toByteArray());
 		}
 
+		@Override
 		public int read() throws IOException {
 			return in.read();
 		}
 
+		@Override
 		public void close() throws IOException {
 			in.close();
 		}
@@ -83,6 +87,7 @@ public class WamiCrossSitePostFilter implements Filter {
 	private class CharResponseWrapper extends HttpServletResponseWrapper {
 		private CharArrayWriter output;
 
+		@Override
 		public String toString() {
 			return output.toString();
 		}
@@ -92,6 +97,7 @@ public class WamiCrossSitePostFilter implements Filter {
 			output = new CharArrayWriter();
 		}
 
+		@Override
 		public PrintWriter getWriter() {
 			return new PrintWriter(output);
 		}

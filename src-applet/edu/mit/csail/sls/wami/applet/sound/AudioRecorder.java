@@ -110,7 +110,8 @@ class AudioRecorder implements Recorder {
 	AudioFormat minFormat = null;
 	AudioFormatComparator comp = new AudioFormatComparator(
 		desiredAudioFormat) {
-	    public int conversionCompare(AudioFormat f1, AudioFormat f2) {
+	    @Override
+		public int conversionCompare(AudioFormat f1, AudioFormat f2) {
 		boolean c1 = AudioSystem.isConversionSupported(
 			desiredAudioFormat, f1);
 		boolean c2 = AudioSystem.isConversionSupported(

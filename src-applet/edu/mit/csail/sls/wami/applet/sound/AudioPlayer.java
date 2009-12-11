@@ -98,6 +98,7 @@ class AudioPlayer implements Player {
 	    super(currentAudioFormat, convertFormat, lineFormat);
 	}
 
+	@Override
 	public int doSamples(AudioInputStream ais) throws IOException {
 	    int n = ais.read(indata);
 	    if (n < 0)
@@ -122,6 +123,7 @@ class AudioPlayer implements Player {
 	    super(currentAudioFormat, convertFormat, lineFormat);
 	}
 
+	@Override
 	public int doSamples(AudioInputStream ais) throws IOException {
 	    int n = ais.read(indata);
 	    if (n < 0)
@@ -190,7 +192,8 @@ class AudioPlayer implements Player {
 	AudioFormat minFormat = null;
 	AudioFormatComparator comp = new AudioFormatComparator(
 		desiredAudioFormat) {
-	    public int conversionCompare(AudioFormat f1, AudioFormat f2) {
+	    @Override
+		public int conversionCompare(AudioFormat f1, AudioFormat f2) {
 		boolean c1 = AudioSystem.isConversionSupported(f1,
 			desiredAudioFormat);
 		boolean c2 = AudioSystem.isConversionSupported(f2,

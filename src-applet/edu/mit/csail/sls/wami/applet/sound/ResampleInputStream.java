@@ -143,17 +143,20 @@ public class ResampleInputStream extends InputStream {
 	return format.isBigEndian() ? ByteOrder.BIG_ENDIAN : ByteOrder.LITTLE_ENDIAN;
     }
 
-    public int available() throws IOException {
+    @Override
+	public int available() throws IOException {
 	convert(false);
 	return targetByteFifo.size();
     }
 
-    public int read() throws IOException {
+    @Override
+	public int read() throws IOException {
 	throw new Error("not supported");
     }
 
     // This must read at least one byte, blocking until something is available
-    public int read(byte[] b, int offset, int length) throws IOException {
+    @Override
+	public int read(byte[] b, int offset, int length) throws IOException {
 	if (targetByteFifo.size() == 0){
 	    convert(true);
 	}
@@ -166,7 +169,8 @@ public class ResampleInputStream extends InputStream {
 	return m;
     }
 
-    public void close() {
+    @Override
+	public void close() {
 	h = null;
 	z = null;
 	sourceByteFifo = null;

@@ -738,6 +738,7 @@ public class SampleBuffer implements WritableByteChannel, InputStreamWriter {
 		 * Bytes from other channels are not included.
 		 *
 		 **/
+		@Override
 		public long position(){
 			return super.position()/nchannels;
 		}
@@ -748,6 +749,7 @@ public class SampleBuffer implements WritableByteChannel, InputStreamWriter {
 		 * @param newPosition The byte position.
 		 *
 		 **/
+		@Override
 		public void position(long newPosition){
 			super.position(nchannels*newPosition);
 		}
@@ -755,6 +757,7 @@ public class SampleBuffer implements WritableByteChannel, InputStreamWriter {
 		/** The number of bytes between the current position and the last
 		 * readable byte.
 		 **/
+		@Override
 		public int remaining(){
 			return (super.remaining()/frameSize)*sampleBytes;
 		}
@@ -766,6 +769,7 @@ public class SampleBuffer implements WritableByteChannel, InputStreamWriter {
 		 * @return The number of bytes read, or -1 if the end of
 		 * the sample buffer has been reached.
 		 **/
+		@Override
 		public int read(ByteBuffer dest){
 			if (eof)
 				return -1;

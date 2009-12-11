@@ -21,6 +21,7 @@ public class WamiCrossSiteGetFilter implements Filter {
 	class CharResponseWrapper extends HttpServletResponseWrapper {
 		private CharArrayWriter output;
 
+		@Override
 		public String toString() {
 			return output.toString();
 		}
@@ -30,6 +31,7 @@ public class WamiCrossSiteGetFilter implements Filter {
 			output = new CharArrayWriter();
 		}
 
+		@Override
 		public PrintWriter getWriter() {
 			return new PrintWriter(output);
 		}
