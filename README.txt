@@ -4,5 +4,5 @@ classes to host a Javascript API for speech web-interfaces.  The
 by 3rd party developers, or you can extend from it yourself
 with an application specific J2EE servlet.
 
-To find out more about the default API expoxed via a Wami servlet,
-visit http://wami.csail.mit.edu
+To find out more about the Javascript API expoxed via a Wami servlet,
+visit http://wami.csail.mit.edu/docs.php
