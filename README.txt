@@ -1,6 +1,6 @@
 This is the core WAMI library.  It provides the necessary classes to
 host a Javascript API for speech web-interfaces.  The API can be
-hosted via a J2EE servlet, such as the one provided in the
+hosted via a J2EE server, such as the one provided in the
 wami-example source tree.
 
 Once hosted on Tomcat, wami-example can then be utilized by 3rd party
