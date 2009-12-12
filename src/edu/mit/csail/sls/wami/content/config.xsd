@@ -1,0 +1,532 @@
+<?xml version="1.0" encoding="UTF-8"?>
+	<!--
+		Copyright (c) 2009 Spoken Language Systems Group MIT Computer Science
+		and Artificial Intelligence Laboratory Massachusetts Institute of
+		Technology Permission is hereby granted, free of charge, to any person
+		obtaining a copy of this software and associated documentation files
+		(the "Software"), to deal in the Software without restriction,
+		including without limitation the rights to use, copy, modify, merge,
+		publish, distribute, sublicense, and/or sell copies of the Software,
+		and to permit persons to whom the Software is furnished to do so,
+		subject to the following conditions: The above copyright notice and
+		this permission notice shall be included in all copies or substantial
+		portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT
+		WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO
+		THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE
+		AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+		HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
+		IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR
+		IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+		SOFTWARE.
+	-->
+<xsd:schema targetNamespace="http://wami.csail.mit.edu/"
+	xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:wami="http://wami.csail.mit.edu/">
+	<xsd:annotation>
+		<xsd:documentation>
+			At the moment there are 3 purposes for this XML
+			Schema: 1)
+			Validation of an wami configuration file, 2)
+			Documentation
+			of configuration options, and 3) Generation of
+			configuration files.
+
+			The use of the configure.xsd and the generated configure.xml
+			files, as
+			opposed to build.properties, is for advanced users
+			of the wami who
+			wish to have a lot of control over the
+			specifics of the GUI.
+
+			The best
+			way to understand the format might be to use
+			Eclipse to generate an
+			XML file from configure.xds
+			(including all optional elements.) Still,
+			it's possible to
+			generate an invalid configuration file by leaving out
+			an
+			important attribute.
+		</xsd:documentation>
+	</xsd:annotation>
+	<xsd:element name="configuration" type="wami:configurationT">
+		<xsd:annotation>
+			<xsd:documentation>
+				This is the root element in an XML file that
+				specifies
+				how an wami should be initialized.
+			</xsd:documentation>
+		</xsd:annotation>
+	</xsd:element>
+	<xsd:complexType name="configurationT">
+		<xsd:annotation>
+			<xsd:documentation>
+				This type specifies the format that the sole
+				configuration element
+				must take.
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="layout" type="wami:layoutT" maxOccurs="1"
+				minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						This element specifies the initial configuration
+						of an wami. The only required child is "title"
+						which specifies the
+						title of the web page.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="relay" type="wami:relayT" maxOccurs="1"
+				minOccurs="0">
+			</xsd:element>
+			<xsd:element name="application" type="wami:instantiatableT"
+				minOccurs="0" maxOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines the instance of the WamiApplicationT
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="synthesizer" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="recognizer" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="event_logger" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="event_player" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0"></xsd:element>
+			<xsd:element name="specifics" maxOccurs="1" minOccurs="0">
+			</xsd:element>
+
+			<xsd:element name="build" type="wami:buildT" maxOccurs="1"
+				minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						This element will house all the
+						properties
+						necessary for building
+						the wami application. At the moment
+						the
+						only
+						property necessary is the
+						appname which specifies the
+						subdirectory
+						where the GUI will be
+						built.
+								</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="database" type="wami:databaseT"
+				maxOccurs="unbounded" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						The database will be contacted using
+						[URLPrefix]://[host]/[database name]
+						If using the SLS postgre
+						database
+						this will become:
+						jdbc:postgresql://sls-db.csail.mit.edu/[name]
+								</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="audio_retriever" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0">
+			</xsd:element>
+			<xsd:element name="validator" type="wami:instantiatableT"
+				maxOccurs="1" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+	</xsd:complexType>
+	<xsd:complexType name="relayT">
+		<xsd:annotation>
+			<xsd:documentation></xsd:documentation>
+		</xsd:annotation>
+		<xsd:sequence>
+			<xsd:element name="settings" type="wami:settingsT"
+				maxOccurs="unbounded" minOccurs="1">
+				<xsd:annotation>
+					<xsd:documentation>
+						Defines the location of a single Galaxy hub.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="relayClass" type="xsd:string"
+			default="edu.mit.csail.sls.wami.relay.WamiRelay">
+		</xsd:attribute>
+		<xsd:attribute name="initialTag" type="xsd:string"
+			default="default">
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="logoT">
+		<xsd:sequence></xsd:sequence>
+		<xsd:attribute name="src" type="xsd:string" default="generic/logo.gif">
+		</xsd:attribute>
+		<xsd:attribute name="width" type="xsd:int" default="431"></xsd:attribute>
+		<xsd:attribute name="height" type="xsd:int" default="80"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="layoutT">
+		<xsd:sequence>
+			<xsd:element name="title" type="xsd:string" maxOccurs="1"
+				minOccurs="1" default="Web Talker">
+				<xsd:annotation>
+					<xsd:documentation>
+						The web page title for this wami.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="logo" type="wami:logoT" maxOccurs="1"
+				minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						A logo that will appear in the upper left hand
+						corner of this wami.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="audio" type="wami:audioT" maxOccurs="1"
+				minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Including this element will display an audio
+						applet that can be used to stream speech to a
+						recognizer. The XML
+						Validator won't complain,
+						but the default Audio Applet will require
+						the
+						configuration to contain the "galaxy" element,
+						otherwise it will
+						not be able to communicate
+						with the recognizer.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="externalAudio" type="xsd:string"
+				maxOccurs="1" minOccurs="0" default="">
+				<xsd:annotation>
+					<xsd:documentation>
+						Adding this element to the layout indicates that
+						although we are not including the audio applet
+						on this page, we
+						still expect an external audio
+						server to connect (e.g. from a
+						mobile device).
+						This ensures that, for example, the correctable
+						recognition results box will still be available.
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+			<xsd:element name="mobile" type="xsd:string" maxOccurs="1"
+				minOccurs="0" default="">
+				<xsd:annotation>
+					<xsd:documentation>
+						Adding this element to the layout indicates that
+						the layout should be optimized for a mobile
+						device. Currently,
+						there are no further
+						properties for this element, however this may
+						change in the future (e.g., it may become
+						possible to specify
+						specific devices or
+						capabilities such as wifi, 3g, etc)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="testBrowser" type="xsd:boolean"
+			default="true">
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="audioT">
+		<xsd:sequence>
+			<xsd:element name="archive" type="wami:archiveT"
+				maxOccurs="unbounded" minOccurs="0">
+				<xsd:annotation>
+					<xsd:documentation>
+						Specifies the location of the additional .jar
+						files necessary for the audio applet (relative
+						to the WebContent
+						folder.)
+					</xsd:documentation>
+				</xsd:annotation>
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="useSpeechDetector" type="xsd:boolean"
+			default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Use end-point detection in the speech recognizer.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="hideButton" type="xsd:boolean"
+			default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					Hide the big hold/click to talk button (invoke
+					using
+					java-script)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="pollForAudio" type="xsd:boolean"
+			default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Poll for audio on the /play servlet
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="playRecordTone" type="xsd:boolean"
+			default="false">
+			<xsd:annotation>
+				<xsd:documentation>
+					If true, a tone will be played when recording
+					starts
+					and stops.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+
+		<xsd:attribute name="greenOnEnableInput" type="xsd:boolean"
+			default="true">
+		</xsd:attribute>
+		<xsd:attribute name="appletClass" type="xsd:string"
+			default="edu.mit.csail.sls.wami.applet.WamiAudioApplet.class">
+			<xsd:annotation>
+				<xsd:documentation>
+					Specify the class that will be used as the audio
+					applet.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="width" type="xsd:int" default="250">
+			<xsd:annotation>
+				<xsd:documentation>
+					Width of the audio applet.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="height" type="xsd:int" default="75">
+			<xsd:annotation>
+				<xsd:documentation>
+					Height of the audio applet.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="archive" type="xsd:string">
+			<xsd:annotation>
+				<xsd:documentation>
+					The archive in which the audio applet can be
+					found.
+					If more than archive needs to be specified, one can
+					add
+					additional archives as children of this element.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="recordAudioFormat" type="wami:audioFormatT"
+			default="LIN16">
+			<xsd:annotation>
+				<xsd:documentation>
+					Audio format to use for recording speech input.
+					(default LIN16) [mulaw support is marginal right
+					now]
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="recordSampleRate" type="xsd:int"
+			default="8000">
+			<xsd:annotation>
+				<xsd:documentation>
+					Sample rate to use for recording speech input
+					(default 8000)
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="recordIsLittleEndian" type="xsd:boolean"
+			default="true">
+			<xsd:annotation>
+				<xsd:documentation>
+					Endian-ness of recorded audio
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="pollTimeout" type="xsd:int"
+			default="240">
+		</xsd:attribute>
+		<xsd:attribute name="port" type="xsd:int" default="-1">
+			<xsd:annotation>
+				<xsd:documentation>Override the default port over which the
+					audio
+					controller will stream the audio. It is typically unnecessary
+					to set
+					this value. A value of -1 indicates that the port will be
+					determined programatically. It can be necessary to specify your own
+					if there are certain restrictions on the types of data that you can
+					stream over various ports.</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="archiveT">
+		<xsd:attribute name="src" type="xsd:string" use="required"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="portT">
+		<xsd:attribute name="value" type="xsd:int" default="50500"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="hostT">
+		<xsd:attribute name="value" type="xsd:string" default="localhost">
+		</xsd:attribute>
+	</xsd:complexType>
+
+
+
+	<xsd:complexType name="settingsT">
+		<xsd:sequence></xsd:sequence>
+		<xsd:attribute name="maxRelays" type="xsd:int" default="1">
+			<xsd:annotation>
+				<xsd:documentation>
+					Maximum number of relays that allowed.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="relayTimeout" type="xsd:string"
+			default="default">
+			<xsd:annotation>
+				<xsd:documentation>
+					If no messages are sent over the relay in this
+					many minutes, then the relay is timed out.
+					Relay timeout in minutes.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="noPollFromClientTimeout" type="xsd:long"
+			default="300000">
+			<xsd:annotation>
+				<xsd:documentation>
+					If the client has polled in this many
+					milliseconds,
+					then the relay is timed out. This is used to determine
+					when users
+					have navigated away from the page, or refreshed. If the
+					client is
+					not polling, it is more aggressively timed out.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+
+		<xsd:attribute name="tag" type="xsd:string" default="default">
+			<xsd:annotation>
+				<xsd:documentation>
+					The "tag" is a non-unique ID that allows you to
+					differentiate between relay settings on the fly. We
+					might for
+					instance set it to "default" for one
+					location and "mobile" for
+					another. We can then use
+					the URL parameter settingsTag="mobile" to
+					specify
+					that we wish only to connect using settings
+					appropriate for a
+					mobile device.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="pollTimeout" type="xsd:long"
+			default="-1">
+			<xsd:annotation>
+				<xsd:documentation>
+					Each time the gui polls, this is the length of
+					time
+					(in milliseconds) the server is allowed to wait
+					before sending
+					back a reply. If set to -1, then the
+					gui will wait until a message
+					is ready t be set. On
+					desktop browsers, a value of -1 seems to work
+					fine;
+					however, on Opera mobile running on a mobile device
+					that's not
+					plugged in, if these polls take too long,
+					opera appears to
+					(silently) fail, which makes the
+					gui non-responsive.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+	</xsd:complexType>
+	<xsd:simpleType name="audioFormatT">
+		<xsd:restriction base="xsd:string">
+			<xsd:enumeration value="LIN16"></xsd:enumeration>
+			<xsd:enumeration value="MULAW"></xsd:enumeration>
+		</xsd:restriction>
+	</xsd:simpleType>
+	<xsd:complexType name="instantiatableT">
+		<xsd:sequence>
+			<xsd:element name="param" type="wami:parameterT"
+				maxOccurs="unbounded" minOccurs="0">
+			</xsd:element>
+		</xsd:sequence>
+		<xsd:attribute name="class" type="xsd:string" use="required"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="parameterT">
+		<xsd:attribute name="name" type="xsd:string"></xsd:attribute>
+		<xsd:attribute name="value" type="xsd:string"></xsd:attribute>
+	</xsd:complexType>
+	<xsd:complexType name="buildT">
+		<xsd:attribute name="appname" type="xsd:string" default="wami">
+			<xsd:annotation>
+				<xsd:documentation>
+					This attribute specifies the webapp name. The
+					application should be deployed in webapps/[appname].
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="ajaxconfig" type="xsd:string"
+			default="edu.mit.csail.sls.wami.WamiConfig">
+		</xsd:attribute>
+	</xsd:complexType>
+
+	<xsd:complexType name="databaseT">
+		<xsd:annotation>
+			<xsd:documentation>
+
+			</xsd:documentation>
+		</xsd:annotation>
+		<xsd:all></xsd:all>
+		<xsd:attribute name="name" type="xsd:string" use="required"></xsd:attribute>
+		<xsd:attribute name="user" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					The user that can access the database.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="password" type="xsd:string" use="required">
+			<xsd:annotation>
+				<xsd:documentation>
+					Password to access the database.
+				</xsd:documentation>
+			</xsd:annotation>
+		</xsd:attribute>
+		<xsd:attribute name="driver" type="xsd:string"
+			default="org.postgresql.Driver">
+		</xsd:attribute>
+		<xsd:attribute name="urlPrefix" type="xsd:string"
+			default="jdbc:postgresql">
+		</xsd:attribute>
+		<xsd:attribute name="host" type="xsd:string" default="sls-db.csail.mit.edu">
+		</xsd:attribute>
+		<xsd:attribute name="port" type="xsd:string" default="5432"></xsd:attribute>
+		<xsd:attribute name="namespace" type="xsd:string"
+			default="public">
+		</xsd:attribute>
+		<xsd:attribute name="tag" type="xsd:string" default="default"></xsd:attribute>
+	</xsd:complexType>
+
+</xsd:schema>
