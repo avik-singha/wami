@@ -1,1 +1,5 @@
 bin/
+^CVS
+.*/CVS
+.*/CVS/.*
+.cvsignore
