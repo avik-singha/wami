@@ -329,7 +329,7 @@ public class WamiServlet extends HttpServlet {
 		return manager.getRelay(wsessionid);
 	}
 
-	public static void setRelay(HttpServletRequest request, WamiRelay relay,
+	public static String setRelay(HttpServletRequest request, WamiRelay relay,
 			String wsessionid) throws ReachedCapacityException {
 		if (wsessionid == null) {
 			wsessionid = request.getSession().getId();
@@ -339,6 +339,7 @@ public class WamiServlet extends HttpServlet {
 
 		RelayManager manager = RelayManager.getManager(request.getSession());
 		manager.addRelay(relay, wsessionid);
+		return wsessionid;
 	}
 
 	public static WamiRelay initializeRelay(HttpServletRequest request,
@@ -350,7 +351,7 @@ public class WamiServlet extends HttpServlet {
 		WamiRelay relay;
 
 		relay = newRelay(session.getServletContext());
-		setRelay(request, relay, wsessionid);
+		wsessionid = setRelay(request, relay, wsessionid);
 
 		relay.initialize(request, wsessionid);
 		return relay;

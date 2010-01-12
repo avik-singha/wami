@@ -505,10 +505,14 @@ Wami.App.prototype.attachAudio = function(elem, options) {
 	var applet = this.attachWamiPlugin(elem, options, params);
 	if (!applet) {
 		applet = this.attachJavaPlugin(elem, options, params);
+		applet.width = _wamiParams.applet.width;
+		applet.height = _wamiParams.applet.height;
+	}
+	else {
+		applet.style.width = _wamiParams.applet.width;
+		applet.style.height = _wamiParams.applet.height;
 	}
 	
-	applet.style.width = _wamiParams.applet.width;
-	applet.style.height = _wamiParams.applet.height;
 	applet.setAttribute("NAME", _wamiParams.applet.name);
 	
 	elem.appendChild(applet);
@@ -574,7 +578,7 @@ Wami.App.prototype.setupEnvironment = function(src) {
 	wamiframe.style.left = '-999px';
 	wamiframe.scriptqueue = [];
 
-	wamiframe.onload = function() {
+	var iframeLoadFunction = function() {
 		var wdw = wamiframe.contentWindow, q = wamiframe.scriptqueue, i, m;
 
 		for (i = 0, m = q.length; i < m; i++) {
@@ -582,9 +586,14 @@ Wami.App.prototype.setupEnvironment = function(src) {
 		}
 
 		wamiframe.isLoaded = true;
-
-		delete wamiframe.scriptqueue;
-		delete wamiframe.onload;
+	}
+	
+	if (wamiframe.attachEvent) {
+		wamiframe.attachEvent("onload", iframeLoadFunction); // ie
+	} else if (wamiframe.addEventListener) {
+		wamiframe.addEventListener("load", iframeLoadFunction, true); // Safari, Firefox
+	} else {
+		wamiframe.onload = iframeLoadFunction;
 	}
 
 	document.body.appendChild(wamiframe);
