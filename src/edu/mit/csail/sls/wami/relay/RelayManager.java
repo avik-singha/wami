@@ -35,6 +35,7 @@ import java.util.Set;
 import java.util.Vector;
 import java.util.Map.Entry;
 
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 import edu.mit.csail.sls.wami.WamiConfig;
@@ -59,7 +60,9 @@ public class RelayManager {
 
 	private long noPollFromClientTimeout;
 
-	public List<WamiRelay> getActiveRelays() {
+	private ServletContext sc;
+
+	public synchronized List<WamiRelay> getActiveRelays() {
 		List<WamiRelay> relays = new Vector<WamiRelay>();
 		Iterator<WamiRelay> it = activeRelays.values().iterator();
 		while (it.hasNext()) {
@@ -68,19 +71,21 @@ public class RelayManager {
 		return relays;
 	}
 
-	public RelayManager(int maxActiveRelays, long relayTimeout,
-			long noPollFromClientTimeout) {
+	private RelayManager(int maxActiveRelays, long relayTimeout,
+			long noPollFromClientTimeout, ServletContext servletContext) {
 		System.out.println("New RelayManager started for " + maxActiveRelays
 				+ " simulteanous active relays");
 		this.maxActiveRelays = maxActiveRelays;
 		this.timeout = relayTimeout;
 		this.noPollFromClientTimeout = noPollFromClientTimeout;
+		this.sc = servletContext;
 		new Thread(new TimeoutThread()).start();
 	}
 
 	public synchronized void remove(WamiRelay relay) {
-		System.out.println("Removing relay: " + relay);
+		debugActive("About to remove relay " + relay.getWamiSessionID());
 		activeRelays.remove(relay.getWamiSessionID());
+		debugActive("Removed relay " + relay.getWamiSessionID());
 	}
 
 	/**
@@ -97,11 +102,11 @@ public class RelayManager {
 	 */
 	public synchronized boolean isCapacityAvailable(WamiRelay relay) {
 		int activeSize = activeRelays.size();
-		System.out.println("Initial activeSize: " + activeSize);
+
+		debugActive("Checking capacity");
 		if (relay != null && activeRelays.values().contains(relay)) {
 			activeSize--; // assume this one will be removed
 		}
-		System.out.println("Final activeSize: " + activeSize);
 		return activeSize < maxActiveRelays;
 	}
 
@@ -118,8 +123,9 @@ public class RelayManager {
 							getNextTimeout()));
 		}
 
-		System.out.println("Adding relay: " + relay + " at " + wsessionid);
+		debugActive("About to add relay");
 		activeRelays.put(wsessionid, relay);
+		debugActive("Added Relay " + wsessionid);
 		long curTime = System.currentTimeMillis();
 		nextTimeout = curTime + timeout;
 	}
@@ -154,6 +160,8 @@ public class RelayManager {
 				long sleepTime = Math.min(noPollFromClientTimeout, timeout);
 				synchronized (RelayManager.this) {
 					nextTimeout = curTime;
+					debugActive("Before Timeout");
+
 					if (activeRelays.size() > 0) {
 						Iterator<Entry<String, WamiRelay>> it = activeRelays
 								.entrySet().iterator();
@@ -168,6 +176,8 @@ public class RelayManager {
 							}
 						}
 					}
+
+					debugActive("After Timeout");
 				}
 
 				try {
@@ -217,6 +227,12 @@ public class RelayManager {
 		}
 	}
 
+	private void debugActive(String message) {
+		message = "\nActiveRelays.size(" + message + "): "
+				+ getActiveRelays().size() + "\n";
+		System.err.println(message);
+	}
+
 	public static RelayManager getManager(HttpSession session) {
 		RelayManager manager = (RelayManager) session.getServletContext()
 				.getAttribute("relayManager");
@@ -226,10 +242,11 @@ public class RelayManager {
 					.getServletContext());
 
 			manager = new RelayManager(wc.getMaxRelays(), wc
-					.getRelayTimeout(session), wc.getNoPollFromClientTimeout());
+					.getRelayTimeout(session), wc.getNoPollFromClientTimeout(),
+					session.getServletContext());
 
 			session.getServletContext().setAttribute("relayManager", manager);
-		} 
+		}
 
 		return manager;
 	}
