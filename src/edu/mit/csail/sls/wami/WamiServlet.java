@@ -39,7 +39,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpSessionEvent;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -49,6 +48,7 @@ import edu.mit.csail.sls.wami.relay.InitializationException;
 import edu.mit.csail.sls.wami.relay.ReachedCapacityException;
 import edu.mit.csail.sls.wami.relay.RelayManager;
 import edu.mit.csail.sls.wami.relay.WamiRelay;
+import edu.mit.csail.sls.wami.util.ServletUtils;
 import edu.mit.csail.sls.wami.util.XmlUtils;
 import edu.mit.csail.sls.wami.validation.IValidator;
 
@@ -132,7 +132,7 @@ public class WamiServlet extends HttpServlet {
 				if (m != null) {
 					printResponse(m, request, response);
 				} else {
-					response.getOutputStream().close();
+					response.getWriter().close();
 				}
 			}
 		} catch (InterruptedException e) {
@@ -310,6 +310,9 @@ public class WamiServlet extends HttpServlet {
 			relay = manager.getRelay(wsessionid);
 
 			if (relay == null) {
+				session.getServletContext().log(
+						"Creating relay:\n"
+								+ ServletUtils.getStackTrace(new Throwable()));
 				System.out.println("Relay is null, attempting to initialize");
 				try {
 					System.out.println("INITIALIZING WAMI RELAY");
