@@ -39,6 +39,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.http.HttpSession;
 
 import edu.mit.csail.sls.wami.WamiConfig;
+import edu.mit.csail.sls.wami.util.ServletUtils;
 
 /**
  * Manages all the relays for the servlet.
@@ -181,9 +182,7 @@ public class RelayManager {
 				}
 
 				try {
-					// System.out.println("RelayManager" + this +
-					// "sleeping for: "
-					// + sleepTime);
+					sc.log("Timeout Thread Sleep for: " + sleepTime);
 					Thread.sleep(sleepTime);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -228,24 +227,31 @@ public class RelayManager {
 	}
 
 	private void debugActive(String message) {
-		message = "\nActiveRelays.size(" + message + "): "
-				+ getActiveRelays().size() + "\n";
-		System.err.println(message);
+		message = "ActiveRelays.size(" + message + "): "
+				+ getActiveRelays().size();
+		sc.log(message);
 	}
 
 	public static RelayManager getManager(HttpSession session) {
-		RelayManager manager = (RelayManager) session.getServletContext()
-				.getAttribute("relayManager");
+		RelayManager manager = null;
 
-		if (manager == null) {
-			WamiConfig wc = WamiConfig.getConfiguration(session
-					.getServletContext());
+		synchronized (session.getServletContext()) {
+			manager = (RelayManager) session.getServletContext().getAttribute(
+					"relayManager");
 
-			manager = new RelayManager(wc.getMaxRelays(), wc
-					.getRelayTimeout(session), wc.getNoPollFromClientTimeout(),
-					session.getServletContext());
+			if (manager == null) {
+				session.getServletContext().log("Creating Relay Manager");
+				WamiConfig wc = WamiConfig.getConfiguration(session
+						.getServletContext());
 
-			session.getServletContext().setAttribute("relayManager", manager);
+				manager = new RelayManager(wc.getMaxRelays(), wc
+						.getRelayTimeout(session), wc
+						.getNoPollFromClientTimeout(), session
+						.getServletContext());
+
+				session.getServletContext().setAttribute("relayManager",
+						manager);
+			}
 		}
 
 		return manager;

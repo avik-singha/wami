@@ -15,6 +15,8 @@ import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.SocketTimeoutException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +57,7 @@ public class WamiAudioApplet extends JApplet implements AudioDevice.Listener,
 	private MouseListener mouseListener;
 
 	private boolean allowStopPlaying;
-	
+
 	private boolean repollOnTimeout = true;
 
 	private volatile boolean connected = false;
@@ -78,8 +80,7 @@ public class WamiAudioApplet extends JApplet implements AudioDevice.Listener,
 
 	@Override
 	public void init() {
-		System.out.println("Initializing WAMI Audio Applet");
-		System.out.println("Code 6");
+		System.out.println("Initializing WAMI Audio Applet 5");
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
 				public void run() {
@@ -434,14 +435,18 @@ public class WamiAudioApplet extends JApplet implements AudioDevice.Listener,
 	}
 
 	private URL urlParameter(String paramName) {
+		System.out.println("Getting URL from parameter");
 		String urlString = getParameter(paramName);
 		if (urlString != null && !"".equals(urlString)
 				&& !"null".equals(urlString)) {
 			try {
-				return new URL(urlString);
+				URI uri = new URI(urlString);
+				return uri.toURL();
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 				System.err.println("Invalid url: " + urlString);
+			} catch (URISyntaxException e) {
+				e.printStackTrace();
 			}
 		}
 		return null;
@@ -618,21 +623,27 @@ public class WamiAudioApplet extends JApplet implements AudioDevice.Listener,
 			public void run() {
 				try {
 					System.out.println("Posting audio to " + recordUrl);
+					System.out.println("Format: " + recordFormat);
 
 					HttpURLConnection conn = (HttpURLConnection) recordUrl
 							.openConnection();
+					
+					conn.setRequestProperty("Content-Type",
+							getContentType(recordFormat));
+
 					conn.setDoInput(true);
 					conn.setDoOutput(true);
 					conn.setRequestMethod("POST");
-					conn.setChunkedStreamingMode(10240);
+					conn.setChunkedStreamingMode(2048);
 					conn.connect();
 
 					OutputStream out = conn.getOutputStream();
+
 					byte[] buffer = new byte[10240];
 					int totalRead = 0;
 					while (true) {
 						int numRead = in.read(buffer);
-						if (numRead == -1) {
+						if (numRead < 0) {
 							break;
 						}
 						out.write(buffer, 0, numRead);
@@ -654,8 +665,22 @@ public class WamiAudioApplet extends JApplet implements AudioDevice.Listener,
 					setConnectionStatus(false);
 				}
 			}
+
 		}).start();
 
+	}
+
+	private String getContentType(AudioFormat format) {
+		String encoding = null;
+		if (format.getEncoding() == AudioFormat.Encoding.ULAW) {
+			encoding = "MULAW";
+		} else if (format.getEncoding() == AudioFormat.Encoding.PCM_SIGNED) {
+			encoding = "L16";
+		}
+
+		return "AUDIO/" + encoding + "; CHANNELS=" + format.getChannels()
+				+ "; RATE=" + (int) format.getSampleRate() + "; BIG="
+				+ format.isBigEndian();
 	}
 
 	void playResource(String resourceName) {

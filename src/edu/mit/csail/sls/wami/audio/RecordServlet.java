@@ -40,6 +40,7 @@ import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 
 import edu.mit.csail.sls.wami.util.ContentType;
+import edu.mit.csail.sls.wami.WamiConfig;
 import edu.mit.csail.sls.wami.WamiServlet;
 import edu.mit.csail.sls.wami.relay.WamiRelay;
 
@@ -70,7 +71,8 @@ public class RecordServlet extends HttpServlet {
 	@Override
 	public void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-
+		//System.out.println("Request: "
+		//		+ WamiConfig.reconstructRequestURLandParams(request));
 		System.out.println("Handling portal recognize() post on session: "
 				+ request.getSession().getId());
 
@@ -138,37 +140,40 @@ public class RecordServlet extends HttpServlet {
 	private AudioFormat getAudioFormatFromParams(HttpServletRequest request,
 			String formatParam, String sampleRateParam,
 			String isLittleEndianParam) {
+		System.out.println("Record Content-Type " + request.getContentType());
 		ContentType contentType = ContentType.parse(request.getContentType());
 		String contentMajor = contentType.getMajor();
 		String contentMinor = contentType.getMinor();
 
 		// If Content-Type is valid, go with it
-		if ("AUDIO".equals(contentMajor)){
-		    if (contentMinor.equals("L16")){
-			int rate = contentType.getIntParameter("RATE", 8000);
-			int channels = contentType.getIntParameter("CHANNELS", 1);
-			boolean big = contentType.getBooleanParameter("BIG", true);
-			return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, rate, 16, channels, 2, rate, big);
-		    }
+		if ("AUDIO".equals(contentMajor)) {
+			if (contentMinor.equals("L16")) {
+				// Content-Type = AUDIO/L16; CHANNELS=1; RATE=8000; BIG=false
+				int rate = contentType.getIntParameter("RATE", 8000);
+				int channels = contentType.getIntParameter("CHANNELS", 1);
+				boolean big = contentType.getBooleanParameter("BIG", true);
+				return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, rate,
+						16, channels, 2, rate, big);
+			}
 		}
-		
+
 		// One of the clients that does not specify ContentType, or
 		// sets it to something bogus
 		String audioFormatStr = request.getParameter(formatParam);
 		int sampleRate = Integer
-		.parseInt(request.getParameter(sampleRateParam));
+				.parseInt(request.getParameter(sampleRateParam));
 		boolean isLittleEndian = Boolean.parseBoolean(request
-			.getParameter(isLittleEndianParam));
+				.getParameter(isLittleEndianParam));
 
 		if ("MULAW".equals(audioFormatStr)) {
-		    return new AudioFormat(AudioFormat.Encoding.ULAW, sampleRate, 8, 1,
-			    2, 8000, !isLittleEndian);
+			return new AudioFormat(AudioFormat.Encoding.ULAW, sampleRate, 8, 1,
+					2, 8000, !isLittleEndian);
 		} else if ("LIN16".equals(audioFormatStr)) {
-		    return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sampleRate,
-			    16, 1, 2, sampleRate, !isLittleEndian);
+			return new AudioFormat(AudioFormat.Encoding.PCM_SIGNED, sampleRate,
+					16, 1, 2, sampleRate, !isLittleEndian);
 		}
 		throw new UnsupportedOperationException("Unsupported audio format: '"
-			+ audioFormatStr + "'");
+				+ audioFormatStr + "'");
 	}
 
 }

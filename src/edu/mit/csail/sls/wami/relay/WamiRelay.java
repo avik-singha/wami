@@ -486,6 +486,7 @@ public class WamiRelay implements IApplicationController {
 		this.stopPolling();
 		this.audioQueue.add(new AudioElement(null)); // The poison pill
 
+		sc.log("ClosingRelay: " + wsessionid);
 		if (wamiApp != null) {
 			wamiApp.onClosed();
 			wamiApp = null;
@@ -493,6 +494,7 @@ public class WamiRelay implements IApplicationController {
 
 		if (recognizer != null) {
 			try {
+				sc.log("DestroyingRecognizer");
 				recognizer.destroy();
 				recognizer = null;
 			} catch (RecognizerException e) {
@@ -502,6 +504,7 @@ public class WamiRelay implements IApplicationController {
 
 		if (synthesizer != null) {
 			try {
+				sc.log("DestroyingSynthesizer");
 				synthesizer.destroy();
 				synthesizer = null;
 			} catch (SynthesizerException e) {
@@ -511,6 +514,7 @@ public class WamiRelay implements IApplicationController {
 
 		if (eventLogger != null) {
 			try {
+				sc.log("DestroyingEventLogger");
 				eventLogger.close();
 				eventLogger = null;
 			} catch (EventLoggerException e) {
@@ -518,7 +522,16 @@ public class WamiRelay implements IApplicationController {
 			}
 		}
 
-		this.session.setAttribute("relay", null);
+		(new Thread(new Runnable() {
+			@Override
+			public void run() {
+				// Sometimes the session is already invalid
+				// Not sure how to check, so run in new thread.
+				WamiRelay.this.session.setAttribute("relay", null);
+			}
+		})).start();
+
+		sc.log("DoneClosingRelay: " + wsessionid);
 	}
 
 	public void stopPolling() {

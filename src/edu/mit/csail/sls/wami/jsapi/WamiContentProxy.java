@@ -17,8 +17,6 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
 import edu.mit.csail.sls.wami.WamiConfig;
-import edu.mit.csail.sls.wami.WamiServlet;
-import edu.mit.csail.sls.wami.relay.InitializationException;
 import edu.mit.csail.sls.wami.util.Parameter;
 import edu.mit.csail.sls.wami.util.ServletUtils;
 import edu.mit.csail.sls.wami.util.XmlUtils;
