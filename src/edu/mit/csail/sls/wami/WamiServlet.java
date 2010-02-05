@@ -310,9 +310,6 @@ public class WamiServlet extends HttpServlet {
 			relay = manager.getRelay(wsessionid);
 
 			if (relay == null) {
-				session.getServletContext().log(
-						"Creating relay:\n"
-								+ ServletUtils.getStackTrace(new Throwable()));
 				System.out.println("Relay is null, attempting to initialize");
 				try {
 					System.out.println("INITIALIZING WAMI RELAY");
