@@ -483,55 +483,58 @@ public class WamiRelay implements IApplicationController {
 	}
 
 	public synchronized void close() {
-		this.stopPolling();
-		this.audioQueue.add(new AudioElement(null)); // The poison pill
-
-		sc.log("ClosingRelay: " + wsessionid);
-		if (wamiApp != null) {
-			wamiApp.onClosed();
-			wamiApp = null;
-		}
-
-		if (recognizer != null) {
-			try {
-				sc.log("DestroyingRecognizer");
-				recognizer.destroy();
-				recognizer = null;
-			} catch (RecognizerException e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (synthesizer != null) {
-			try {
-				sc.log("DestroyingSynthesizer");
-				synthesizer.destroy();
-				synthesizer = null;
-			} catch (SynthesizerException e) {
-				e.printStackTrace();
-			}
-		}
-
-		if (eventLogger != null) {
-			try {
-				sc.log("DestroyingEventLogger");
-				eventLogger.close();
-				eventLogger = null;
-			} catch (EventLoggerException e) {
-				e.printStackTrace();
-			}
-		}
-
+		// Run this on a separate thread to avoid delays/errors
+		
 		(new Thread(new Runnable() {
 			@Override
 			public void run() {
+				WamiRelay.this.stopPolling();
+				// The poison pill
+				WamiRelay.this.audioQueue.add(new AudioElement(null));
+
+				sc.log("ClosingRelay: " + wsessionid);
+				if (wamiApp != null) {
+					wamiApp.onClosed();
+					wamiApp = null;
+				}
+
+				if (recognizer != null) {
+					try {
+						sc.log("DestroyingRecognizer");
+						recognizer.destroy();
+						recognizer = null;
+					} catch (RecognizerException e) {
+						e.printStackTrace();
+					}
+				}
+
+				if (synthesizer != null) {
+					try {
+						sc.log("DestroyingSynthesizer");
+						synthesizer.destroy();
+						synthesizer = null;
+					} catch (SynthesizerException e) {
+						e.printStackTrace();
+					}
+				}
+
+				if (eventLogger != null) {
+					try {
+						sc.log("DestroyingEventLogger");
+						eventLogger.close();
+						eventLogger = null;
+					} catch (EventLoggerException e) {
+						e.printStackTrace();
+					}
+				}
+
 				// Sometimes the session is already invalid
 				// Not sure how to check, so run in new thread.
 				WamiRelay.this.session.setAttribute("relay", null);
+				sc.log("DoneClosingRelay: " + wsessionid);
 			}
 		})).start();
 
-		sc.log("DoneClosingRelay: " + wsessionid);
 	}
 
 	public void stopPolling() {
