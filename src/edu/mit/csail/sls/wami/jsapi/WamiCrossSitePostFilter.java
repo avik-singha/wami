@@ -1,14 +1,16 @@
 package edu.mit.csail.sls.wami.jsapi;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.CharArrayWriter;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -20,39 +22,38 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletRequestWrapper;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponseWrapper;
 import javax.servlet.http.HttpSession;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 
-import edu.mit.csail.sls.wami.WamiConfig;
 import edu.mit.csail.sls.wami.WamiServlet;
 import edu.mit.csail.sls.wami.relay.WamiRelay;
 import edu.mit.csail.sls.wami.util.XmlUtils;
 
 public class WamiCrossSitePostFilter implements Filter {
 	public static final String JAVASCRIPT_POST_ID = "WAMI_JAVASCRIPT_POST_ID_ATTRIBUTE_NAME";
+	String desiredEncoding = "UTF-8";
+	String defaultEncoding = "ISO8859_1";
 
 	class CustomRequestWrapper extends HttpServletRequestWrapper {
 
 		private CustomServerInputStream in;
 
-		public CustomRequestWrapper(HttpServletRequest request)
+		public CustomRequestWrapper(HttpServletRequest request, String str)
 				throws IOException {
 			super(request);
-			InputStream is = request.getInputStream();
-			int ch;
-			ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-			while ((ch = is.read()) != -1) {
-				buffer.write((byte) ch);
-			}
-			in = new CustomServerInputStream(buffer);
+			in = new CustomServerInputStream(str);
 		}
 
 		@Override
 		public ServletInputStream getInputStream() throws IOException {
 			return in;
+		}
+
+		@Override
+		public String getCharacterEncoding() {
+			return desiredEncoding;
 		}
 
 		@Override
@@ -67,10 +68,9 @@ public class WamiCrossSitePostFilter implements Filter {
 	class CustomServerInputStream extends ServletInputStream {
 		private InputStream in;
 
-		public CustomServerInputStream(ByteArrayOutputStream baos)
-				throws IOException {
+		public CustomServerInputStream(String str) throws IOException {
 			super();
-			in = new ByteArrayInputStream(baos.toByteArray());
+			in = new ByteArrayInputStream(str.getBytes(desiredEncoding));
 		}
 
 		@Override
@@ -84,27 +84,27 @@ public class WamiCrossSitePostFilter implements Filter {
 		}
 	}
 
-	private class CharResponseWrapper extends HttpServletResponseWrapper {
-		private CharArrayWriter output;
-
-		@Override
-		public String toString() {
-			return output.toString();
-		}
-
-		public CharResponseWrapper(HttpServletResponse response) {
-			super(response);
-			output = new CharArrayWriter();
-		}
-
-		@Override
-		public PrintWriter getWriter() {
-			return new PrintWriter(output);
-		}
-	}
-
 	@Override
 	public void destroy() {
+
+	}
+
+	public void printToFile(String str) {
+		try {
+			FileOutputStream fos = new FileOutputStream("/scratch/test.html");
+
+			BufferedWriter out = new BufferedWriter(new OutputStreamWriter(fos,
+					"UTF8"));
+
+			out.write(str);
+			out.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 
 	}
 
@@ -115,14 +115,15 @@ public class WamiCrossSitePostFilter implements Filter {
 		HttpServletResponse response = (HttpServletResponse) res;
 
 		if ("post".equals(request.getParameter("jsxss"))) {
-			boolean success = doRequestModification(request, response);
+			HttpServletRequest wrapper = doRequestModification(request,
+					response);
 
-			if (!success) {
+			if (wrapper == null) {
 				response.sendRedirect("about:blank");
 				return;
 			}
 
-			chain.doFilter(req, res);
+			chain.doFilter(wrapper, res);
 
 			sendMessageProcessedConfirmation(request);
 		} else {
@@ -130,8 +131,8 @@ public class WamiCrossSitePostFilter implements Filter {
 		}
 	}
 
-	private boolean doRequestModification(HttpServletRequest request,
-			HttpServletResponse response) {
+	private HttpServletRequest doRequestModification(
+			HttpServletRequest request, HttpServletResponse response) {
 
 		HttpSession session = request.getSession();
 
@@ -140,19 +141,42 @@ public class WamiCrossSitePostFilter implements Filter {
 		String postID = request.getParameter("postID");
 
 		// System.out.println("XSS POST: "
-		// 		+ WamiConfig.reconstructRequestURLandParams(request));
+		// + WamiConfig.reconstructRequestURLandParams(request));
 		// System.out.println("POST ID: " + postID);
 
 		if (postID.equals(lastJavascriptPostID)) {
 			// Ignore posting to duplicate form (happens on refresh)
 			// This is the "Post Redirect Get" pattern if you want to Google
-			// it. This solves the FF3 refresh bug.
-			return false;
+			// it. This solves the FF3 refresh bug. But not the back bug.
+			return null;
 		}
 
 		session.setAttribute(JAVASCRIPT_POST_ID, postID);
 
-		return true;
+		if (request.getParameter("wamiMessage") != null) {
+			// This is a hack:
+			// http://globalizer.wordpress.com/category/web-applications/
+			// All the fixes I've tried have failed.
+			String message;
+			try {
+				String encoding = request.getCharacterEncoding();
+				if (encoding == null) {
+					encoding = defaultEncoding;
+				}
+				System.out.println("Converting from: " + encoding + " to "
+						+ desiredEncoding);
+				message = new String(request.getParameter("wamiMessage")
+						.getBytes(encoding), desiredEncoding);
+				printToFile(message);
+				request = new CustomRequestWrapper(request, message);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return request;
 	}
 
 	private void sendMessageProcessedConfirmation(HttpServletRequest request) {
