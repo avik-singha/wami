@@ -307,6 +307,7 @@ Wami.App.prototype.trySendingMessage = function() {
 	
 	var params = "jsxss=post&postID=" + postID;
 	var posturl = this.appendParamsToURL(_wamiParams.controlUrl, params)
+	this._messageElements.messageForm.setAttribute("accept-charset", "UTF-8");
 	this._messageElements.messageForm.setAttribute("action", posturl);
 
 	this._messageElements.messageField.value = this._currentMessage;
@@ -443,17 +444,26 @@ Wami.App.prototype.attachWamiPlugin = function(elem, options, params){
 		div.appendChild(applet)
 		var form = document.createElement("form");
 		var button = document.createElement("input");
+		var interval = 0;
 		button.setAttribute("TYPE", "button");
 		button.setAttribute("VALUE", "Record");
 		button.style.width = "100%";
 		button.style.height = "100%";
-		button.onclick = function(){
-			if (button.value == "Record"){
+		var pollrec = function(){
+			if (applet.recorder_state == 0){
+				button.value = "Record";
+			} else {
 				button.value = "Stop";
+				setTimeout(pollrec, 100);
+			}
+		};
+		button.onclick = function(){
+			if (applet.recorder_state == 0){
+				// Idle
 				applet.startListening();
+				setTimeout(pollrec, 100);
 			} else {
 				applet.stopRecording();
-				button.value = "Record";
 			}
 		};
 		form.appendChild(button);

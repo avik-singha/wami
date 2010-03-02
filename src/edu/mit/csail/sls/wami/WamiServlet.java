@@ -27,8 +27,9 @@
  */
 package edu.mit.csail.sls.wami;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Vector;
@@ -42,13 +43,13 @@ import javax.servlet.http.HttpSession;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import edu.mit.csail.sls.wami.relay.InitializationException;
 import edu.mit.csail.sls.wami.relay.ReachedCapacityException;
 import edu.mit.csail.sls.wami.relay.RelayManager;
 import edu.mit.csail.sls.wami.relay.WamiRelay;
-import edu.mit.csail.sls.wami.util.ServletUtils;
 import edu.mit.csail.sls.wami.util.XmlUtils;
 import edu.mit.csail.sls.wami.validation.IValidator;
 
@@ -153,14 +154,12 @@ public class WamiServlet extends HttpServlet {
 			System.err.println(WamiConfig
 					.reconstructRequestURLandParams(request));
 
-			if (request.getParameter("wamiMessage") != null) {
-				xmlDoc = XmlUtils.getBuilder().parse(
-						new ByteArrayInputStream(request.getParameter(
-								"wamiMessage").getBytes()));
-			} else {
-				xmlDoc = XmlUtils.getBuilder().parse(request.getInputStream());
-			}
-
+			InputStream stream;
+			stream = request.getInputStream();
+			InputSource source = new InputSource(new InputStreamReader(stream,
+					request.getCharacterEncoding()));
+			
+			xmlDoc = XmlUtils.getBuilder().parse(source);
 			Element root = (Element) xmlDoc.getFirstChild();
 
 			if (root == null) {
