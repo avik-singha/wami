@@ -1,6 +1,8 @@
 package edu.mit.csail.sls.wami.jsapi;
 
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -16,6 +18,9 @@ import org.w3c.dom.NodeList;
 import edu.mit.csail.sls.wami.app.IApplicationController;
 import edu.mit.csail.sls.wami.app.IWamiApplication;
 import edu.mit.csail.sls.wami.audio.PlayServlet;
+import edu.mit.csail.sls.wami.log.EventPlayerException;
+import edu.mit.csail.sls.wami.log.IEventPlayer;
+import edu.mit.csail.sls.wami.log.WamiLogPlayerListener;
 import edu.mit.csail.sls.wami.recognition.IRecognitionResult;
 import edu.mit.csail.sls.wami.recognition.IRecognizer;
 import edu.mit.csail.sls.wami.recognition.exceptions.RecognizerException;
@@ -75,9 +80,10 @@ public class ClientControlledApplication implements IWamiApplication,
 
 	private boolean currentAggregateIsPartial = false;
 	private IRecognizer recognizer;
+	private IEventPlayer player;
 
 	public static enum ErrorType {
-		grammar_compilation, configuration, unknown_client_message, recording_not_found, not_implemented, synthesis_error
+		grammar_compilation, configuration, unknown_client_message, recording_not_found, not_implemented, synthesis_error, playback_error
 	};
 
 	public void initialize(IApplicationController appController,
@@ -148,8 +154,10 @@ public class ClientControlledApplication implements IWamiApplication,
 	public void onClientMessage(Element xmlRoot) {
 		String type = xmlRoot.getAttribute("type");
 		System.out.println("Got client message in ClientControlledApp...");
-
-		if ("configure".equals(type)) {
+		
+		if (("playback").equals(type)) {
+			handlePlayback(xmlRoot);
+		} else if ("configure".equals(type)) {
 			handleConfigure(xmlRoot);
 		} else if ("speak".equals(type)) {
 			handleSpeak(xmlRoot);
@@ -163,11 +171,34 @@ public class ClientControlledApplication implements IWamiApplication,
 			handlePlayURL(xmlRoot);
 		} else if ("logevents".equals(type)) {
 			// Nothing todo (logging is done in WamiRelay)
+		} else if (("action").equals(type)) {
+			// Nothing to do, actions just get logged.
 		} else {
 			sendError(ErrorType.unknown_client_message,
 					"Unknown client update type: "
 							+ xmlRoot.getAttribute("type"));
 		}
+	}
+
+	private void handlePlayback(Element xmlRoot) {
+		String playbackSession = xmlRoot.getAttribute("playback_session");
+		player = appController.getLogPlayer();
+		player.addListener(new WamiLogPlayerListener(appController));
+
+		try {
+			System.out.println("Playing back session: " + playbackSession);
+			player.playSession(playbackSession);
+		} catch (EventPlayerException e) {
+			e.printStackTrace();
+			StringWriter w = new StringWriter();
+			e.printStackTrace(new PrintWriter(w));
+			sendError(ErrorType.playback_error, "Error during playback: "
+					+ w.toString());
+		}
+	}
+
+	protected boolean isPlayingBack() {
+		return player != null;
 	}
 
 	private void handleRepoll(Element xmlRoot) {

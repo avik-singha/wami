@@ -38,6 +38,9 @@ public class WamiContentProxy extends HttpServlet {
 	@Override
 	public void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException {
+		response.setCharacterEncoding("UTF-8");
+
+		response.setContentType("text/html; char-set:UTF-8");
 		String requestURL = request.getRequestURL().toString();
 		String resource = requestURL.substring(requestURL.indexOf(request
 				.getContextPath())
