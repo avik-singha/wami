@@ -167,7 +167,7 @@ public class WamiCrossSitePostFilter implements Filter {
 						+ desiredEncoding);
 				message = new String(request.getParameter("wamiMessage")
 						.getBytes(encoding), desiredEncoding);
-				printToFile(message);
+				//printToFile(message);
 				request = new CustomRequestWrapper(request, message);
 			} catch (UnsupportedEncodingException e) {
 				e.printStackTrace();
